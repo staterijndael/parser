@@ -1,0 +1,37 @@
+###     import requests
+###     from bs4 import BeautifulSoup
+###     import lxml
+###     current_page = 0
+###     url = 'http://readmanga.me/tales_of_demons_and_gods/vol1/212#page=%i' % current_page
+###     while (True):
+    ###     r = requests.get(url) # получаем страницу с мангой
+    ###     soup = BeautifulSoup(r.text, "lxml")
+    ###     src_link = soup.find('div', {'id': 'fotocontext'}).find('img').get('src')
+    ###     page = soup.find('div', {'id': 'fotocontext'}).find('img').get('pagenum')
+    ###     current_page = current_page + 1
+    ###     print(soup)
+    ###     print(page)
+import threading
+from selenium.webdriver import Firefox
+from selenium.webdriver.firefox.options import Options
+from threading import Thread
+class MangaParser:
+    def __init__(self,url):
+        opts = Options()
+        self.browser = Firefox(options=opts)
+        self.browser.get(url)
+    def get_urls(self):
+        num_of_pages = self.browser.find_element_by_xpath('/html/body/div[4]/div[1]/div[2]/span[2]')
+        counter = 1
+        while (counter < num_of_pages):
+            urls = []
+            value = self.browser.find_element_by_xpath('//*[@id="mangaPicture"]')
+            url = value.getAttribute("src")
+            urls[counter - 1] = url
+            self.browser.find_element_by_class_name('nextButton btn btn-primary long').click()
+            counter = counter + 1
+        return urls
+list_of_urls = ['http://readmanga.me/tales_of_demons_and_gods/vol1/212#','http://readmanga.me/van_pis/vol93/934']
+for url in list_of_urls:
+    thread = threading.Thread(target=MangaParser(url).get_urls, args=())
+    thread.start()
